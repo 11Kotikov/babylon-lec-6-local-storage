@@ -1,15 +1,34 @@
+<!DOCTYPE html>
 <html>
+
+<head>
+    <meta charset="utf-8">
+</head>
+
+<head></head>
 
 <body>
     <canvas id="render-canvas"></canvas>
     <div id="user-interface">
         <!-- кнопка рестарта -->
-        <img id="restart-btn" src="assets/restart.png" />
+        <img id="restart-btn" src="assets/restart.png">
         <!-- значек сбора монет -->
-        <img id="coin-img" src="assets/insert-coin.png" />
+        <img id="coin-img" src="assets/insert-coin.png">
         <!-- счет и его значение -->
         <p id="coin-score" class="jersey-10-regular">0</p>
-        <!-- <p id="score" class="jersey-10-regular">0</p> -->
+
+        <!-- 1. добавили плеер скрин -->
+        <div id="play-screen">
+            <p id="score" class="a-pos">0</p>
+        </div>
+        <!-- 2. добавили гейм овер скрин -->
+        <div id="game-over-screen">
+            <p id="game-over-info" class="game-over-p">GAME OVER</p>
+            <p id="best-score" class="game-over-p">BEST: 0</p>
+            <p id="now-score" class="game-over-p">NOW: 0</p>
+            <p id="tap-info" class="game-over-p">Tap to restart</p>
+        </div>
+
     </div>
     <style>
         /* взяли шрифт  */
@@ -24,8 +43,6 @@
             /* убрать выделение пальцем объектов на сцене: */
             user-select: none;
         }
-
-        /* дз - создание функции css .absoPos */
 
         /* устанавливаем класс - шрифт для нашего приложения */
         .jersey-10-regular {
@@ -54,6 +71,61 @@
             top: -4.6vh;
             right: 8vh;
             font-size: 6vh;
+        }
+
+        /* 3  GAME OVER SCREEN */
+        #game-over-screen {
+            display: none;
+        }
+
+        .game-over-p {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+        }
+
+        #game-over-info {
+            top: 10vh;
+            font-size: 7vh;
+        }
+
+        #best-score {
+            top: 30vh;
+            font-size: 6vh;
+        }
+
+        #now-score {
+            top: 40vh;
+            font-size: 6vh;
+        }
+
+        #tap-info {
+            top: 70vh;
+            font-size: 4vh;
+            animation-name: tap-info_anim;
+            animation-duration: 2s;
+            animation-iteration-count: infinite;
+        }
+
+        /*CSS Анимации */
+        @keyframes tap-info_anim {
+            from {
+                font-size: 4vh;
+                top: 70vh;
+                opacity: 0;
+            }
+
+            to {
+                font-size: 4vh;
+                top: 70vh;
+                opacity: 0;
+            }
+
+            50% {
+                font-size: 4.5vh;
+                top: 69.5vh;
+                opacity: 1;
+            }
         }
     </style>
     <!-- библиотека babylon -->
@@ -174,8 +246,6 @@
                 if (i === rand) {
                     if (Math.random() < 0.5) { //вероятность появления монеты > 50%
                         createCoin(new BABYLON.Vector3((i * 2) - 2, 1, 3 + zPos));
-                    } else {
-                        //дз создание монеты
                     }
                     continue;
                 }
@@ -219,12 +289,12 @@
 
             if (x > (window.innerWidth / 2)) { // Если касание произошло правее центра экрана
                 ball.physicsImpostor.applyImpulse(
-                    new BABYLON.Vector3(2, 0, 0), // Применяем импульс вправо
+                    new BABYLON.Vector3(6, 0, 0), // Применяем импульс вправо
                     ball.getAbsolutePosition() // Точка импульса = текущая позиция мяча
                 );
             } else { // Если касание произошло левее или в центре экрана
                 ball.physicsImpostor.applyImpulse(
-                    new BABYLON.Vector3(-2, 0, 0), // Применяем импульс влево
+                    new BABYLON.Vector3(-6, 0, 0), // Применяем импульс влево
                     ball.getAbsolutePosition() // Точка импульса = текущая позиция мяча
                 );
             }
@@ -240,9 +310,26 @@
         });
 
         //Алгоритм
+
+        //4. Извлечение тегов из разметки
         let coinScoreInfo = window.document.querySelector('#coin-score');
+
+        let restartBtn = window.document.querySelector('#restart-btn');
+        let scoreInfo = window.document.querySelector('#score');
+        let playScreen = window.document.querySelector('#play-screen');
+        let gameOverScreen = window.document.querySelector('#game-over-screen');
+        let bestScoreInfo = window.document.querySelector('#best-score');
+        let nowScoreInfo = window.document.querySelector('#now-score');
+
+        //5. переменые 
         let coinScore = 0;
+        let score = 0;
+        let state = PLAY;
+        // Константы
+        const PLAY = 'play';
+        const GAME_OVER = 'game_over';
         //Функции
+
         const saveCoinScore = () => {
             window.localStorage.setItem('coinScore', coinScore);
         }
@@ -250,11 +337,39 @@
         const loadCoinScore = () => {
             coinScore = (window.localStorage.getItem('coinScore'))
                 //если значение возвращается
-                ? window.localStorage.setItem('coinScore', coinScore) // то его и прокидываем в coinScore
+                ? window.localStorage.getItem('coinScore', coinScore) // то его и прокидываем в coinScore
                 : 0 //а иначе "0"
-            ;
+                ;
             coinScoreInfo.innerText = coinScore; // отобразить на странице
         }
+
+        //6.
+        const saveBestScore = () => {
+            window.localStorage.setItem('bestScore', score);
+        }
+        const loadBestScore = () => {
+            return (window.localStorage.getItem('bestScore'))
+                ? window.localStorage.getItem('bestScore')
+                : 0
+                ;
+        }
+        const setGameOverScreen = () => {
+            state = GAME_OVER;
+            playScreen.style.display = 'none';
+            gameOverScreen.style.display = 'block';
+            let bestScore = loadBestScore();
+            if (score > bestScore) {
+                saveBestScore();
+                bestScore = score;
+                //color picker
+                bestScoreInfo.style.color = '#0003ad';
+                nowScoreInfo.style.color = '#0003ad';
+            }
+            bestScoreInfo.innerText = `BEST: ${bestScore}`;
+            nowScoreInfo.innerText = `NOW: ${score}`;
+        }
+
+
         loadCoinScore();
         //Встроенные Функции Babylon.js
 
@@ -263,6 +378,7 @@
             for (let i = 0; i < boxArray.length; i++) {
                 if (ball.intersectsMesh(boxArray[i], true)) { //проверяем столкновения
                     boxArray[i].material.emissiveColor = new BABYLON.Color3(0.5, 0, 0);
+                    setGameOverScreen();
                 }
             }
             for (let i = 0; i < coinArray.length; i++) {
@@ -284,6 +400,8 @@
             scene.render();
         });
     </script>
+
+
 
 </body>
 
