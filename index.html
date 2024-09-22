@@ -250,7 +250,7 @@
         const loadCoinScore = () => {
             coinScore = (window.localStorage.getItem('coinScore'))
                 //если значение возвращается
-                ? window.localStorage.setItem('coinScore', coinScore) // то его и прокидываем в coinScore
+                ? window.localStorage.getItem('coinScore', coinScore) // то его и прокидываем в coinScore
                 : 0 //а иначе "0"
             ;
             coinScoreInfo.innerText = coinScore; // отобразить на странице
